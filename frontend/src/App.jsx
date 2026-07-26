@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './index.css';
 
-const API_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+const API_URL = (() => {
+  const base = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+  return base === '/api' || base.endsWith('/api') ? base : `${base}/api`;
+})();
 
 function App() {
   const [view, setView] = useState('login'); // 'login', 'register', 'dashboard'

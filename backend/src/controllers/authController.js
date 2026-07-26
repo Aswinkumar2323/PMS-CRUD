@@ -11,6 +11,14 @@ const registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
 
   try {
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Name, email and password are required' });
+    }
+
+    if (!process.env.MONGODB_URI) {
+      return res.status(503).json({ message: 'Database is not configured yet' });
+    }
+
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
@@ -30,7 +38,8 @@ const registerUser = async (req, res) => {
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Register error:', error);
+    res.status(500).json({ message: error.message || 'Registration failed' });
   }
 };
 

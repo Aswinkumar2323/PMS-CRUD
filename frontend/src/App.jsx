@@ -20,6 +20,7 @@ function App() {
   
   // Dashboard State
   const [products, setProducts] = useState([]);
+  const [users, setUsers] = useState([]);
   const [prodName, setProdName] = useState('');
   const [prodDesc, setProdDesc] = useState('');
   const [prodPrice, setProdPrice] = useState('');
@@ -43,8 +44,11 @@ function App() {
   useEffect(() => {
     if (token && view === 'dashboard') {
       fetchProducts();
+      if (userRole === 'ADMIN') {
+        fetchUsers();
+      }
     }
-  }, [token, view]);
+  }, [token, view, userRole]);
 
   // If token exists on load, go to dashboard
   useEffect(() => {
@@ -84,6 +88,24 @@ function App() {
       setProducts(data);
     } catch (err) {
       console.error('Failed to fetch products');
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const { data } = await axios.get(`${API_URL}/users`);
+      setUsers(data);
+    } catch (err) {
+      console.error('Failed to fetch users');
+    }
+  };
+
+  const deleteUserById = async (id) => {
+    try {
+      await axios.delete(`${API_URL}/users/${id}`);
+      fetchUsers();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete user');
     }
   };
 
@@ -211,6 +233,30 @@ function App() {
               ))
             )}
           </div>
+
+          {userRole === 'ADMIN' && (
+            <div style={{ marginTop: '2rem' }}>
+              <h3>Admin: Manage Users</h3>
+              <div className="product-list">
+                {users.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)' }}>No users found.</p>
+                ) : (
+                  users.map(user => (
+                    <div key={user._id} className="product-item">
+                      <div className="product-info">
+                        <h3>{user.name}</h3>
+                        <p>{user.email}</p>
+                        <div className="price">Role: {user.role}</div>
+                      </div>
+                      <div className="btn-group">
+                        <button onClick={() => deleteUserById(user._id)} className="btn-danger">Delete User</button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
